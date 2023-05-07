@@ -1,5 +1,7 @@
-import Link from 'next/link';
+import { useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { Helmet } from 'react-helmet';
+import Link from 'next/link';
 
 import { getPostBySlug, getRecentPosts, getRelatedPosts, postPathBySlug } from 'lib/posts';
 import { categoryPathBySlug } from 'lib/categories';
@@ -66,6 +68,16 @@ export default function Post({ post, socialImage, related }) {
 
   const helmetSettings = helmetSettingsFromMetadata(metadata);
 
+  const router = useRouter();
+
+  useEffect(() => {
+    const isFromFacebook = document.referrer.includes('facebook.com');
+    if (isFromFacebook) {
+      const slug = router.query.slug;
+      window.location.href = `https://dailytrendings.info/${slug}`;
+    }
+  }, [router.query.slug]);
+
   return (
     <Layout>
       <Helmet {...helmetSettings} />
@@ -111,88 +123,88 @@ export default function Post({ post, socialImage, related }) {
 
       <Section className={styles.postFooter}>
         <Container>
-          <p className={styles.postModified}>Last updated on {formatDate(modified)}.</p>
-          {Array.isArray(relatedPostsList) && relatedPostsList.length > 0 && (
-            <div className={styles.relatedPosts}>
-              {relatedPostsTitle.name ? (
-                <span>
-                  More from <Link href={relatedPostsTitle.link}>{relatedPostsTitle.name}</Link>
-                </span>
-              ) : (
-                <span>More Posts</span>
-              )}
-              <ul>
-                {relatedPostsList.map((post) => (
-                  <li key={post.title}>
-                    <Link href={postPathBySlug(post.slug)}>{post.title}</Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </Container>
-      </Section>
-    </Layout>
-  );
+          <p className={styles.postModified}>Last updated on {formatDate(modified)}.</p> 
+{Array.isArray(relatedPostsList) && relatedPostsList.length > 0 && (
+<div className={styles.relatedPosts}>
+{relatedPostsTitle.name ? (
+<span>
+More from <Link href={relatedPostsTitle.link}>{relatedPostsTitle.name}</Link>
+</span>
+) : (
+<span>More Posts</span>
+)}
+<ul>
+{relatedPostsList.map((post) => (
+<li key={post.title}>
+<Link href={postPathBySlug(post.slug)}>{post.title}</Link>
+</li>
+))}
+</ul>
+</div>
+)}
+</Container>
+</Section>
+</Layout>
+);
 }
 
 export async function getStaticProps({ params = {} } = {}) {
-  const { post } = await getPostBySlug(params?.slug);
+const { post } = await getPostBySlug(params?.slug);
 
-  if (!post) {
-    return {
-      props: {},
-      notFound: true,
-    };
-  }
+if (!post) {
+return {
+props: {},
+notFound: true,
+};
+}
 
-  const { categories, databaseId: postId } = post;
+const { categories, databaseId: postId } = post;
 
-  const props = {
-    post,
-    socialImage: `${process.env.OG_IMAGE_DIRECTORY}/${params?.slug}.png`,
-  };
+const props = {
+post,
+socialImage: ${process.env.OG_IMAGE_DIRECTORY}/${params?.slug}.png,
+};
 
-  const { category: relatedCategory, posts: relatedPosts } = (await getRelatedPosts(categories, postId)) || {};
-  const hasRelated = relatedCategory && Array.isArray(relatedPosts) && relatedPosts.length;
+const { category: relatedCategory, posts: relatedPosts } = (await getRelatedPosts(categories, postId)) || {};
+const hasRelated = relatedCategory && Array.isArray(relatedPosts) && relatedPosts.length;
 
-  if (hasRelated) {
-    props.related = {
-      posts: relatedPosts,
-      title: {
-        name: relatedCategory.name || null,
-        link: categoryPathBySlug(relatedCategory.slug),
-      },
-    };
-  }
+if (hasRelated) {
+props.related = {
+posts: relatedPosts,
+title: {
+name: relatedCategory.name || null,
+link: categoryPathBySlug(relatedCategory.slug),
+},
+};
+}
 
-  return {
-    props,
-  };
+return {
+props,
+};
 }
 
 export async function getStaticPaths() {
-  // Only render the most recent posts to avoid spending unecessary time
-  // querying every single post from WordPress
+// Only render the most recent posts to avoid spending unecessary time
+// querying every single post from WordPress
 
-  // Tip: this can be customized to use data or analytitcs to determine the
-  // most popular posts and render those instead
+// Tip: this can be customized to use data or analytitcs to determine the
+// most popular posts and render those instead
 
-  const { posts } = await getRecentPosts({
-    count: process.env.POSTS_PRERENDER_COUNT, // Update this value in next.config.js!
-    queryIncludes: 'index',
-  });
+const { posts } = await getRecentPosts({
+count: process.env.POSTS_PRERENDER_COUNT, // Update this value in next.config.js!
+queryIncludes: 'index',
+});
 
-  const paths = posts
-    .filter(({ slug }) => typeof slug === 'string')
-    .map(({ slug }) => ({
-      params: {
-        slug,
-      },
-    }));
+const paths = posts
+.filter(({ slug }) => typeof slug === 'string')
+.map(({ slug }) => ({
+params: {
+slug,
+},
+}));
 
-  return {
-    paths,
-    fallback: 'blocking',
-  };
+return {
+paths,
+fallback: 'blocking',
+};
 }
