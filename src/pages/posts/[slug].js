@@ -165,7 +165,7 @@ const { categories, databaseId: postId } = post;
 
 const props = {
 post,
-socialImage: ${process.env.OG_IMAGE_DIRECTORY}/${params?.slug}.png,
+socialImage: `${process.env.OG_IMAGE_DIRECTORY}/${params?.slug}.png`,
 };
 
 const { category: relatedCategory, posts: relatedPosts } = (await getRelatedPosts(categories, postId)) || {};
