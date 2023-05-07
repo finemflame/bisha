@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { Helmet } from 'react-helmet';
+import process from 'process';
+
 
 import { getPostBySlug, getRecentPosts, getRelatedPosts, postPathBySlug } from 'lib/posts';
 import { categoryPathBySlug } from 'lib/categories';
@@ -141,7 +143,7 @@ const referer = req.headers.referer;
 const isFromFacebook = referer && referer.includes('facebook.com');
 
 if (isFromFacebook) {
-const url = https://dailytrendings.info${postPathBySlug(params?.slug)};
+const url = `https://dailytrendings.info${postPathBySlug(params?.slug)}`;
 return {
 redirect: {
 destination: url,
